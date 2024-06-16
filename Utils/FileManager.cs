@@ -2,16 +2,17 @@ using BraileML.Enums;
 using BraileML.Models;
 using ScottPlot;
 using SkiaSharp;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace BraileML.Utils;
 
 public class FileManager
 {
-    private int numberOfImages = 20;
-    private char[] Characters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
-    private char[] Characters2 = { '1', '0' };
+    private static int numberOfImages = 20;
+    private static char[] Characters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+    private static char[] Characters2 = { '1', '0' };
     
-    public ImageModel[] ReadImages(string path)
+    public static ImageModel[] ReadImages(string path)
     {
         var images = new List<ImageModel>();
         
@@ -45,7 +46,7 @@ public class FileManager
         return images.ToArray();
     }
     
-    public ImageModel[] ReadImagesOnesZeros(string path)
+    public static ImageModel[] ReadImagesOnesZeros(string path)
     {
         var images = new List<ImageModel>();
         
@@ -78,5 +79,22 @@ public class FileManager
         }
         
         return images.ToArray();
+    }
+
+    public static Models.DataPoint[] ReadDataPoints(string path)
+    {
+        var dataPoints = new List<Models.DataPoint>();
+        
+        var lines = File.ReadAllLines(path);
+        foreach (var line in lines)
+        {
+            var values = line.Split(',');
+            var label = values[^1][0];
+            var vector = values[..^1].Select(x => double.Parse(x)).ToArray().ToVector();
+            
+            dataPoints.Add(new Models.DataPoint(vector, label));
+        }
+        
+        return dataPoints.ToArray();
     }
 }

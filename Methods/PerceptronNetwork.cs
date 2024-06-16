@@ -2,7 +2,6 @@ using BraileML.Interface;
 using BraileML.Models;
 using BraileML.Utils;
 using MathNet.Numerics.LinearAlgebra;
-using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace BraileML.Methods;
 
@@ -28,28 +27,30 @@ public class PerceptronNetwork
         return result;
     }
     
-    public void Train(ImageModel[] images, ITrain train, int epochs, double learningRate)
+    public void Train(DataPoint[] points, ITrain train, int epochs, double learningRate)
     {
         for (var i = 0; i < epochs; i++)
         {
-            var accuracy = Accuracy(images, train);
-            Console.WriteLine($"Epoch {i + 1} - Accuracy: {accuracy}");
             
-            foreach (var image in images)
+            
+            foreach (var point in points)
             {
-                var result = FeedForward(image.Vector);
-                var expected = train.Expected(image.Character);
+                var result = FeedForward(point.Vector);
+                var expected = train.Expected(point.Label);
                 
                 BackPropagation(result, expected);
+                foreach (var layer in Layers)
+                {
+                    layer.UpdateNeurons(learningRate);
+                }
             }
             
-            foreach (var layer in Layers)
-            {
-                layer.UpdateNeurons(learningRate);
-            }
+           
 
-            //if (i % 10 != 0) continue;
+            var accuracy = Accuracy(points, train);
+            Console.WriteLine($"Epoch {i + 1} - Accuracy: {accuracy}");
 
+            if (accuracy >= 0.95) break;
         }
         
         Console.WriteLine("Training finished");
@@ -77,13 +78,13 @@ public class PerceptronNetwork
         return result;
     }
     
-    public double Accuracy(ImageModel[] images, ITrain train)
+    public double Accuracy(DataPoint[] poitns, ITrain train)
     {
         var correct = 0;
-        foreach (var image in images)
+        foreach (var point in poitns)
         {
-            var result = Predict(image.Vector);
-            var expectedVector = train.Expected(image.Character);
+            var result = Predict(point.Vector);
+            var expectedVector = train.Expected(point.Label);
             
             var expected = expectedVector.MaximumIndex();
             var predicted = result.MaximumIndex();
@@ -91,6 +92,6 @@ public class PerceptronNetwork
             if (expected == predicted) correct++;
         }
         
-        return (double)(correct / (double)images.Length);
+        return (double)correct / poitns.Length;
     }
 }

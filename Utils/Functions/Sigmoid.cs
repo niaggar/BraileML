@@ -7,11 +7,11 @@ public class Sigmoid : IActivationFunction
 {
     public Vector<double> Activate(Vector<double> values)
     {
-        return values.Map(x => 1 / (1 + System.Math.Exp(-x)));
+        return values.Map(x => 1 / (1 + Math.Exp(-x)));
     }
 
     public Vector<double> Derivative(Vector<double> values)
     {
-        return values.Map(x => x * (1 - x));
+        return values.Map(x => Math.Exp(-x) / Math.Pow(1 + Math.Exp(-x), 2));
     }
 }

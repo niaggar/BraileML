@@ -1,12 +1,13 @@
 using BraileML.Interface;
+using BraileML.Utils;
 using MathNet.Numerics.LinearAlgebra;
 
 namespace BraileML.Models;
 
 public class Neuron(int inputSize)
 {
-    public Vector<double> Weights { get; set; } = Vector<double>.Build.Random(inputSize);
-    public double Bias { get; set; } = new Random().NextDouble();
+    public Vector<double> Weights { get; set; } = Vector<double>.Build.DenseOfArray(RandomUtil.GenerateRandomArray(inputSize, -10, 10));
+    public double Bias { get; set; } = RandomUtil.GenerateRandomDouble(-10, 10);
     public double Output { get; set; } = 0;
     private Vector<double> AverageDWeights { get; set; } = Vector<double>.Build.Dense(inputSize);
     private double AverageDBias { get; set; } = 0;
