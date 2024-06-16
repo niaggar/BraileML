@@ -14,7 +14,7 @@ public static class SingularValueDescomposition
         
         var allPrincipalComponents = desc.U;
         
-        var principalComponents = desc.U.SubMatrix(0, desc.U.RowCount, 0, 4);
+        var principalComponents = desc.U.SubMatrix(0, desc.U.RowCount, 0, 10);
         var projectedData = principalComponents.TransposeThisAndMultiply(matrixCentered);
         
         return new ResultSVD

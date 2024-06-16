@@ -9,8 +9,9 @@ namespace BraileML.Utils;
 public class FileManager
 {
     private static int numberOfImages = 20;
-    private static char[] Characters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h' };
+    private static char[] Characters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
     private static char[] Characters2 = { '1', '0' };
+    private static string[] Types = { "dim", "rot", "whs" };
     
     public static ImageModel[] ReadImages(string path)
     {
@@ -20,26 +21,29 @@ public class FileManager
         {
             for (int i = 0; i < numberOfImages; i++)
             {
-                var filePath = $"{path}{character}1.JPG{i}dim.jpg";
-                using Stream stream = File.OpenRead(filePath);
-                var image = SKBitmap.Decode(stream);
-                
-                var matrix = new double[image.Width, image.Height];
-                for (var x = 0; x < image.Width; x++)
+                for (int j = 0; j < Types.Length; j++)
                 {
-                    for (var y = 0; y < image.Height; y++)
-                    {
-                        var color = image.GetPixel(x, y);
-                        var red = color.Red;
-                        var green = color.Green;
-                        var blue = color.Blue;
-                        
-                        var bitValue = (0.299 * red + 0.587 * green + 0.114 * blue);
-                        matrix[x, y] = bitValue / 255;
-                    }
-                }
+                    var filePath = $"{path}{character}1.JPG{i}{Types[j]}.jpg";
+                    using Stream stream = File.OpenRead(filePath);
+                    var image = SKBitmap.Decode(stream);
                 
-                images.Add(new ImageModel(character, matrix));
+                    var matrix = new double[image.Width, image.Height];
+                    for (var x = 0; x < image.Width; x++)
+                    {
+                        for (var y = 0; y < image.Height; y++)
+                        {
+                            var color = image.GetPixel(x, y);
+                            var red = color.Red;
+                            var green = color.Green;
+                            var blue = color.Blue;
+                        
+                            var bitValue = (0.299 * red + 0.587 * green + 0.114 * blue);
+                            matrix[x, y] = bitValue / 255;
+                        }
+                    }
+                
+                    images.Add(new ImageModel(character, matrix));
+                }
             }
         }
         
