@@ -21,11 +21,18 @@ var images = fileManager.ReadImagesOnesZeros(imagesPath);
 
 var lenghtCeroLayer = images[0].Vector.Count;
 
-var network = new PerceptronNetwork(lenghtCeroLayer, [64, 32, 2],  [new Sigmoid(), new Sigmoid(), new Sigmoid()]);
-network.Train(images, new OneZeroTrain(), 1000, 0.1);
+var layers = new LayerProps[]
+{
+    new (lenghtCeroLayer, 100, new SoftMax()),
+    new (100, 50, new SoftMax()),
+    new (50, 2, new Sigmoid())
+};
+
+var network = new PerceptronNetwork(layers, new NormSquare());
+network.Train(images, new OneZeroTrain(), 200, 0.01);
 
 var imageTest = images[0];
-var result = network.FeedForward(imageTest.Vector);
+var result = network.Predict(imageTest.Vector);
 
 Console.WriteLine($"Character: {imageTest.Character}");
 Console.WriteLine($"Result: {result}");

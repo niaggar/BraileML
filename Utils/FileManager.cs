@@ -68,7 +68,8 @@ public class FileManager
                         var green = color.Green;
                         var blue = color.Blue;
                         
-                        matrix[x, y] = (0.299 * red + 0.587 * green + 0.114 * blue);
+                        var bitValue = (0.299 * red + 0.587 * green + 0.114 * blue);
+                        matrix[x, y] = bitValue / 255;
                     }
                 }
                 
