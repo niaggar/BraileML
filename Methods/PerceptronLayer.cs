@@ -17,7 +17,10 @@ public class PerceptronLayer
 
     private Matrix<double> DeltaWeights;
     private Vector<double> DeltaBiases;
-    
+
+    private Matrix<double> VelocityWeights;
+    private Vector<double> VelocityBiases;
+
     public PerceptronLayer(int inputSize, int outputSize, IActivationFunction activationFunction)
     {
         InpuntSize = inputSize;
@@ -27,6 +30,8 @@ public class PerceptronLayer
         Biases = Vector<double>.Build.Random(outputSize);
         DeltaWeights = Matrix<double>.Build.Dense(outputSize, inputSize);
         DeltaBiases = Vector<double>.Build.Dense(outputSize);
+        VelocityWeights = Matrix<double>.Build.Dense(outputSize, inputSize);
+        VelocityBiases = Vector<double>.Build.Dense(outputSize);
     }
     
     public Vector<double> FeedForward(Vector<double> inputs, LayerLearn? learn = null)
@@ -64,19 +69,31 @@ public class PerceptronLayer
     public void UpdateGradients(LayerLearn layerLearnData)
     {
         // Calculate gradients
-        // Derivate of the cost function with respect to the weights
-        var deltaWeights = layerLearnData.Delta.ToColumnMatrix() * layerLearnData.Inputs.ToRowMatrix();
-        // Derivate of the cost function with respect to the biases
-        var deltaBiases = layerLearnData.Delta;
-
-        DeltaWeights += deltaWeights;
-        DeltaBiases += deltaBiases;
+        lock (DeltaWeights)
+        {
+            // Derivate of the cost function with respect to the weights
+            var deltaWeights = layerLearnData.Delta.ToColumnMatrix() * layerLearnData.Inputs.ToRowMatrix();
+            DeltaWeights += deltaWeights;
+        }
+        lock (DeltaBiases)
+        {
+            // Derivate of the cost function with respect to the biases
+            var deltaBiases = layerLearnData.Delta;
+            DeltaBiases += deltaBiases;
+        }
     }
 
-    public void ApplyGradients(double learningRate)
+    public void ApplyGradients(double learningRate, double regularization = 0, double momentum = 0)
     {
-        Weights -= DeltaWeights.Multiply(learningRate);
-        Biases -= DeltaBiases.Multiply(learningRate);
+        var weightDecay = (1 - regularization * learningRate);
+
+        var velocityWeights = VelocityWeights * momentum - DeltaWeights * learningRate;
+        Weights = Weights * weightDecay + velocityWeights;
+        velocityWeights.CopyTo(VelocityWeights);
+
+        var velocityBiases = VelocityBiases * momentum - DeltaBiases * learningRate;
+        Biases = Biases + velocityBiases;
+        velocityBiases.CopyTo(VelocityBiases);
 
         DeltaWeights.Clear();
         DeltaBiases.Clear();

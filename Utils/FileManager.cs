@@ -11,7 +11,7 @@ public class FileManager
     private static int numberOfImages = 20;
     private static char[] Characters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
     private static char[] Characters2 = { '1', '0' };
-    private static string[] Types = { "dim", "rot", "whs" };
+    private static string[] Types = { "dim", "whs" };
     
     public static ImageModel[] ReadImages(string path)
     {

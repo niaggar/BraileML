@@ -7,9 +7,9 @@ namespace BraileML.Methods;
 
 public class PerceptronNetwork
 {
-    private PerceptronLayer[] Layers;
-    private NetworkLearn NetworkLearn;
-    private ILossFunction LossFunction;
+    public PerceptronLayer[] Layers;
+    public NetworkLearn NetworkLearn;
+    public ILossFunction LossFunction;
     
     public PerceptronNetwork(LayerProps[] layers, ILossFunction lossFunction)
     {
@@ -42,25 +42,27 @@ public class PerceptronNetwork
         return (prediction, result);
     }
     
-    public void Train(DataPoint[] points, int epochs, double learningRate)
+    public void Train(DataPoint[] points, double learningRate, double regularization = 0, double momentum = 0)
     {
-        for (var i = 0; i < epochs; i++)
+        //System.Threading.Tasks.Parallel.For(0, points.Length, (i) =>
+        //{
+        //    UpdateGradient(points[i]);
+        //});
+
+        foreach (var point in points)
         {
-            foreach (var point in points)
-            {
-                UpdateGradient(point);
-            }
-
-            for (var j = 0; j < Layers.Length; j++)
-            {
-                Layers[j].ApplyGradients(learningRate);
-                NetworkLearn.LayersLearn[j].Clear();
-            }
-
-            var accuracy = Accuracy(points);
-            
-            Console.WriteLine($"Epoch: {i}, Accuracy: {accuracy.Item2}, Loss: {accuracy.Item1}");
+            UpdateGradient(point);
         }
+
+        for (var j = 0; j < Layers.Length; j++)
+        {
+            Layers[j].ApplyGradients(learningRate / points.Length, regularization, momentum);
+            NetworkLearn.LayersLearn[j].Clear();
+        }
+
+        ////if (i % 10 != 0) continue;
+        //var accuracy = Accuracy(points);
+        //Console.WriteLine($"Accuracy: {accuracy.Item2}, Loss: {accuracy.Item1}");
     }
 
     private void UpdateGradient(DataPoint data)
