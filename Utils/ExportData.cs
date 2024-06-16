@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BraileML.Utils;
 
-public class ExportData
+public class ExportData : IDisposable
 {
     string path;
     StreamWriter stream;
@@ -44,6 +44,12 @@ public class ExportData
     }
 
     public void Close()
+    {
+        stream.Close();
+        stream.Dispose();
+    }
+
+    public void Dispose()
     {
         stream.Close();
         stream.Dispose();

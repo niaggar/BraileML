@@ -180,7 +180,7 @@ for (var i = 0; i < epochs; i++)
     Console.WriteLine($"Epoch: {i}, Accuracy: {accuracy.Item2}, Loss: {accuracy.Item1}");
     exportTrend.ExportTrend(i, accuracy.Item2, accuracy.Item1);
 
-    if (accuracy.Item1 <= 0.1)
+    if (accuracy.Item1 <= 0.18)
     {
         break;
     }
