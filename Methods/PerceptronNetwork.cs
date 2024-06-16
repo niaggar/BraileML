@@ -7,91 +7,115 @@ namespace BraileML.Methods;
 
 public class PerceptronNetwork
 {
-    private PerceptronLayer[] Layers { get; set; }
-    public ILossFunction LossFunction => ((PerceptronOutputLayer)Layers[^1]).LossFunction;
+    private PerceptronLayer[] Layers;
+    private NetworkLearn NetworkLearn;
+    private ILossFunction LossFunction;
     
     public PerceptronNetwork(LayerProps[] layers, ILossFunction lossFunction)
     {
+        LossFunction = lossFunction;
         Layers = new PerceptronLayer[layers.Length];
-        for (var i = 0; i < layers.Length - 1; i++)
+
+        for (var i = 0; i < layers.Length; i++)
         {
-            Layers[i] = new PerceptronLayer(layers[i].InputSize, layers[i].OutputSize, layers[i].ActivationFunction);
+            var inputSize = layers[i].InputSize;
+            var outputSize = layers[i].OutputSize;
+            var activationFunction = layers[i].ActivationFunction;
+            
+            Layers[i] = new PerceptronLayer(inputSize, outputSize, activationFunction);
         }
-        
-        Layers[^1] = new PerceptronOutputLayer(layers[^1].InputSize, layers[^1].OutputSize, layers[^1].ActivationFunction, lossFunction);
+
+        NetworkLearn = new NetworkLearn(Layers);
     }
     
-    public Vector<double> Predict(Vector<double> inputs)
+    public (char prediction, Vector<double> result) Predict(Vector<double> inputs, char[] labels)
     {
-        var result = FeedForward(inputs);
-        return result;
+        for (var i = 0; i < Layers.Length; i++)
+        {
+            var layer = Layers[i];
+            inputs = layer.FeedForward(inputs);
+        }
+
+        var result = inputs;
+        var prediction = labels[result.MaximumIndex()];
+
+        return (prediction, result);
     }
     
-    public void Train(DataPoint[] points, ITrain train, int epochs, double learningRate)
+    public void Train(DataPoint[] points, int epochs, double learningRate)
     {
         for (var i = 0; i < epochs; i++)
         {
-            
-            
             foreach (var point in points)
             {
-                var result = FeedForward(point.Vector);
-                var expected = train.Expected(point.Label);
-                
-                BackPropagation(result, expected);
-                foreach (var layer in Layers)
-                {
-                    layer.UpdateNeurons(learningRate);
-                }
+                UpdateGradient(point);
             }
+
+            for (var j = 0; j < Layers.Length; j++)
+            {
+                Layers[j].ApplyGradients(learningRate);
+                NetworkLearn.LayersLearn[j].Clear();
+            }
+
+            var accuracy = Accuracy(points);
             
-           
+            Console.WriteLine($"Epoch: {i}, Accuracy: {accuracy.Item2}, Loss: {accuracy.Item1}");
+        }
+    }
 
-            var accuracy = Accuracy(points, train);
-            Console.WriteLine($"Epoch {i + 1} - Accuracy: {accuracy}");
+    private void UpdateGradient(DataPoint data)
+    {
+        var inputsToNextLayer = data.Vector;
+        for (int i = 0; i < Layers.Length; i++)
+        {
+            inputsToNextLayer = Layers[i].FeedForward(inputsToNextLayer, NetworkLearn.LayersLearn[i]);
+        }
 
-            if (accuracy >= 0.95) break;
-        }
-        
-        Console.WriteLine("Training finished");
-    }
-    
-    private void BackPropagation(Vector<double> result, Vector<double> expected)
-    {
-        var endLayer = (PerceptronOutputLayer)Layers[^1];
-        var deltaPrev = endLayer.BackPropagation(result, expected);
-        
-        for (var i = Layers.Length - 2; i >= 0; i--)
+        // -- Backpropagation --
+        var outputLayer = Layers[^1];
+        var outputLearnData = NetworkLearn.LayersLearn[^1];
+
+        // Update output layer gradients
+        outputLayer.OutputLayerBackPropagation(outputLearnData, data.Expected, LossFunction);
+        outputLayer.UpdateGradients(outputLearnData);
+
+        // Update all hidden layer gradients
+        for (int i = Layers.Length - 2; i >= 0; i--)
         {
-            deltaPrev = Layers[i].BackPropagation(deltaPrev);
+            var layerLearnData = NetworkLearn.LayersLearn[i];
+            var hiddenLayer = Layers[i];
+            var oldLayer = Layers[i + 1];
+            var oldDeltaValues = NetworkLearn.LayersLearn[i + 1].Delta;
+
+            hiddenLayer.HiddenLayerBackPropagation(layerLearnData, oldLayer, oldDeltaValues);
+            hiddenLayer.UpdateGradients(layerLearnData);
         }
     }
     
-    private Vector<double> FeedForward(Vector<double> inputs)
-    {
-        var result = inputs;
-        foreach (var layer in Layers)
-        {
-            result = layer.FeedForward(result);
-        }
-        
-        return result;
-    }
-    
-    public double Accuracy(DataPoint[] poitns, ITrain train)
+    public (double, double) Accuracy(DataPoint[] poitns)
     {
         var correct = 0;
+        var loss = 0.0;
         foreach (var point in poitns)
         {
-            var result = Predict(point.Vector);
-            var expectedVector = train.Expected(point.Label);
+            var inputs = point.Vector;
+            for (var i = 0; i < Layers.Length; i++)
+            {
+                var layer = Layers[i];
+                inputs = layer.FeedForward(inputs);
+            }
+
+
+            var result = inputs;
+            var expectedVector = point.Expected;
+            loss += LossFunction.Calculate(expectedVector, result);
             
             var expected = expectedVector.MaximumIndex();
             var predicted = result.MaximumIndex();
             
             if (expected == predicted) correct++;
         }
-        
-        return (double)correct / poitns.Length;
+
+        return (loss / poitns.Length, (double)correct / poitns.Length);
     }
 }

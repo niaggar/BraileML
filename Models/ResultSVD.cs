@@ -34,24 +34,20 @@ public class ResultSVD
         return pcValues;
     }
     
-    public ImagePoint[] GetImagePoints(PrincipalComponentEnum[] components)
+    public DataPoint[] GetImagePoints(PrincipalComponentEnum[] components)
     {
-        var imagePoints = new ImagePoint[ProjectedData.GetLength(1)];
+        var imagePoints = new DataPoint[ProjectedData.GetLength(1)];
         for (var i = 0; i < ProjectedData.GetLength(1); i++)
         {
             var character = Characters[i];
-            var point = new ImagePoint
-            {
-                Character = character,
-                Point = Vector<double>.Build.Dense(components.Length)
-            };
+            var point = new DataPoint(Vector<double>.Build.Dense(components.Length), character);
 
             for (int j = 0; j < components.Length; j++)
             {
                 var pcIndex = (int)components[j];
                 var value = ProjectedData[pcIndex, i];
                 
-                point.Point[j] = value;
+                point.Vector[j] = value;
             }
             
             imagePoints[i] = point;

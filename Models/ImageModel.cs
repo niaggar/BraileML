@@ -20,4 +20,9 @@ public class ImageModel
         Character = character;
         Matrix = Matrix<double>.Build.DenseOfArray(matrix);
     }
+
+    public DataPoint ToDataPoint()
+    {
+        return new DataPoint(Vector, Character);
+    }
 }

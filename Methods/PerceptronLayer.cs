@@ -8,59 +8,77 @@ namespace BraileML.Methods;
 
 public class PerceptronLayer
 {
-    public Neuron[] Neurons { get; set; }
-    public IActivationFunction ActivationFunction { get; set; }
-    public Vector<double> Inputs { get; set; }
-    public Vector<double> LayerOutputs { get; set; }
-    public Vector<double> NeuronOutputs => Neurons.Select(x => x.Output).ToArray().ToVector();
+    public int InpuntSize;
+    public int OutputSize;
+
+    public Matrix<double> Weights;
+    public Vector<double> Biases;
+    public IActivationFunction ActivationFunction;
+
+    private Matrix<double> DeltaWeights;
+    private Vector<double> DeltaBiases;
     
     public PerceptronLayer(int inputSize, int outputSize, IActivationFunction activationFunction)
     {
+        InpuntSize = inputSize;
+        OutputSize = outputSize;
         ActivationFunction = activationFunction;
-        Neurons = new Neuron[outputSize];
-        for (var i = 0; i < outputSize; i++) Neurons[i] = new Neuron(inputSize);
+        Weights = Matrix<double>.Build.Random(outputSize, inputSize);
+        Biases = Vector<double>.Build.Random(outputSize);
+        DeltaWeights = Matrix<double>.Build.Dense(outputSize, inputSize);
+        DeltaBiases = Vector<double>.Build.Dense(outputSize);
     }
     
-    public Vector<double> FeedForward(Vector<double> inputs)
+    public Vector<double> FeedForward(Vector<double> inputs, LayerLearn? learn = null)
     {
-        Inputs = inputs;
-        
-        var outputs = Vector<double>.Build.Dense(Neurons.Length);
-        foreach (var neuron in Neurons)
+        var neuronOutputs = Weights.Multiply(inputs).Add(Biases);
+        var layerOutputs = ActivationFunction.Activate(neuronOutputs);
+
+        if (learn != null)
         {
-            neuron.FeedForward(inputs);
-            outputs.Add(neuron.Output);
+            learn.Inputs = inputs;
+            learn.NeuronOutputs = neuronOutputs;
+            learn.LayerOutputs = layerOutputs;
         }
 
-        LayerOutputs = ActivationFunction.Activate(NeuronOutputs);
-        return LayerOutputs;
-    }
-    
-    public Vector<double> BackPropagation(Vector<double> deltaPrev)
-    {
-        var derivateActivation = ActivationFunction.Derivative(NeuronOutputs);
-        var delta = deltaPrev.PointwiseMultiply(derivateActivation);
-        
-        for (var i = 0; i < Neurons.Length; i++)
-        {
-            var neuron = Neurons[i];
-            var neuronDelta = delta[i];
-            
-            var dWeight = Inputs.Multiply(neuronDelta);
-            var dBias = neuronDelta;
-            
-            neuron.BackPropagation(dWeight, dBias);
-        }
-        
-        var weightsMatrix = Matrix<double>.Build.DenseOfColumnVectors(Neurons.Select(x => x.Weights));
-        return weightsMatrix.Multiply(delta);
+        return layerOutputs;
     }
 
-    public void UpdateNeurons(double learningRate)
+    public void OutputLayerBackPropagation(LayerLearn layerLearnData, Vector<double> expectedOutputs, ILossFunction cost)
     {
-        foreach (var neuron in Neurons)
-        {
-            neuron.UpdateWeightsAndBias(learningRate);
-        }
+        var derivateActivation = ActivationFunction.Derivative(layerLearnData.NeuronOutputs);
+        var derivateCost = cost.Derivative(expectedOutputs, layerLearnData.LayerOutputs);
+
+        layerLearnData.Delta = derivateCost.PointwiseMultiply(derivateActivation);
+    }
+
+    public void HiddenLayerBackPropagation(LayerLearn layerLearnData, PerceptronLayer oldLayer, Vector<double> oldDeltaValues)
+    {
+        var weightsTranspose = oldLayer.Weights.Transpose();
+        var deltaDotWeights = weightsTranspose.Multiply(oldDeltaValues);
+        var derivateActivation = ActivationFunction.Derivative(layerLearnData.NeuronOutputs);
+
+        layerLearnData.Delta = deltaDotWeights.PointwiseMultiply(derivateActivation);
+    }
+
+    public void UpdateGradients(LayerLearn layerLearnData)
+    {
+        // Calculate gradients
+        // Derivate of the cost function with respect to the weights
+        var deltaWeights = layerLearnData.Delta.ToColumnMatrix() * layerLearnData.Inputs.ToRowMatrix();
+        // Derivate of the cost function with respect to the biases
+        var deltaBiases = layerLearnData.Delta;
+
+        DeltaWeights += deltaWeights;
+        DeltaBiases += deltaBiases;
+    }
+
+    public void ApplyGradients(double learningRate)
+    {
+        Weights -= DeltaWeights.Multiply(learningRate);
+        Biases -= DeltaBiases.Multiply(learningRate);
+
+        DeltaWeights.Clear();
+        DeltaBiases.Clear();
     }
 }

@@ -7,14 +7,16 @@ public class SoftMax : IActivationFunction
 {
     public Vector<double> Activate(Vector<double> values)
     {
-        var max = values.Max(); // To avoid overflow
-        var exp = values.Subtract(max).Map(System.Math.Exp);
+        var exp = values.Map(System.Math.Exp);
         var sum = exp.Sum();
         return exp.Divide(sum);
     }
 
     public Vector<double> Derivative(Vector<double> values)
     {
-        return values.Map(x => x * (1 - x));
+        var exp = values.Map(System.Math.Exp);
+        var sum = exp.Sum();
+
+        return (exp * sum - exp.PointwiseMultiply(exp)) / System.Math.Pow(sum, 2);
     }
 }
