@@ -11,6 +11,13 @@ public class PerceptronNetwork
     public NetworkLearn NetworkLearn;
     public ILossFunction LossFunction;
     
+    public PerceptronNetwork(PerceptronLayer[] layers, ILossFunction lossFunction)
+    {
+        LossFunction = lossFunction;
+        Layers = layers;
+        NetworkLearn = new NetworkLearn(Layers);
+    }
+    
     public PerceptronNetwork(LayerProps[] layers, ILossFunction lossFunction)
     {
         LossFunction = lossFunction;
@@ -59,10 +66,6 @@ public class PerceptronNetwork
             Layers[j].ApplyGradients(learningRate / points.Length, regularization, momentum);
             NetworkLearn.LayersLearn[j].Clear();
         }
-
-        ////if (i % 10 != 0) continue;
-        //var accuracy = Accuracy(points);
-        //Console.WriteLine($"Accuracy: {accuracy.Item2}, Loss: {accuracy.Item1}");
     }
 
     private void UpdateGradient(DataPoint data)

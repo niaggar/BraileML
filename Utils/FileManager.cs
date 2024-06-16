@@ -101,4 +101,23 @@ public class FileManager
         
         return dataPoints.ToArray();
     }
+    
+    public static void SaveImage(string path, ImageModel imageModel)
+    {
+        var bitmap = new SKBitmap(imageModel.Matrix.ColumnCount, imageModel.Matrix.RowCount);
+        for (var x = 0; x < imageModel.Matrix.ColumnCount; x++)
+        {
+            for (var y = 0; y < imageModel.Matrix.RowCount; y++)
+            {
+                var value = (byte)(imageModel.Matrix[x, y] * 255);
+                var color = new SKColor(value, value, value);
+                bitmap.SetPixel(x, y, color);
+            }
+        }
+        
+        using var image = SKImage.FromBitmap(bitmap);
+        using var data = image.Encode(SKEncodedImageFormat.Jpeg, 100);
+        using var stream = File.OpenWrite(path);
+        data.SaveTo(stream);
+    }
 }

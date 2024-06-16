@@ -21,6 +21,19 @@ public class PerceptronLayer
     private Matrix<double> VelocityWeights;
     private Vector<double> VelocityBiases;
 
+    public PerceptronLayer(LayerProps props, Matrix<double> weights, Vector<double> biases)
+    {
+        Weights = weights;
+        Biases = biases;
+        InpuntSize = props.InputSize;
+        OutputSize = props.OutputSize;
+        ActivationFunction = props.ActivationFunction;
+        DeltaWeights = Matrix<double>.Build.Dense(OutputSize, InpuntSize);
+        DeltaBiases = Vector<double>.Build.Dense(OutputSize);
+        VelocityWeights = Matrix<double>.Build.Dense(OutputSize, InpuntSize);
+        VelocityBiases = Vector<double>.Build.Dense(OutputSize);
+    }
+
     public PerceptronLayer(int inputSize, int outputSize, IActivationFunction activationFunction)
     {
         InpuntSize = inputSize;
