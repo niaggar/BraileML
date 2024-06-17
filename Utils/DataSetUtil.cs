@@ -16,7 +16,7 @@ public class DataSetUtil
             ShuffleArray(allData, new System.Random());
         }
 
-        int trainCount = (int)(allData.Length * Clamp01(trainingSplit));
+        int trainCount = (int)(allData.Length * trainingSplit);
         int validationCount = allData.Length - trainCount;
 
         DataPoint[] trainData = new DataPoint[trainCount];

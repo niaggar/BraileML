@@ -3,6 +3,7 @@ using BraileML.Models;
 using ScottPlot;
 using SkiaSharp;
 using MathNet.Numerics.LinearAlgebra;
+using System.Drawing;
 
 namespace BraileML.Utils;
 
@@ -12,6 +13,8 @@ public class FileManager
     private static char[] Characters = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
     private static char[] Characters2 = { '1', '0' };
     private static string[] Types = { "dim", "whs" };
+    private static char[] Points = { '1', '2', '3', '4', '5', '6' };
+
     
     public static ImageModel[] ReadImages(string path)
     {
@@ -101,7 +104,80 @@ public class FileManager
         
         return dataPoints.ToArray();
     }
-    
+
+    public static ImageModel[] ReadImagesPoints(string path)
+    {
+        var images = new List<ImageModel>();
+
+        foreach (var point in Points)
+        {
+            for (int i = 0; i < 75; i++)
+            {
+                var filePath = $"{path}{point}-{i}.jpg";
+                using Stream stream = File.OpenRead(filePath);
+                var image = SKBitmap.Decode(stream);
+
+                var matrix = new double[image.Width, image.Height];
+                for (var x = 0; x < image.Width; x++)
+                {
+                    for (var y = 0; y < image.Height; y++)
+                    {
+                        var color = image.GetPixel(x, y);
+                        var red = color.Red;
+                        var green = color.Green;
+                        var blue = color.Blue;
+
+                        //var bitValue = (0.299 * red + 0.587 * green + 0.114 * blue);
+                        var bitValue = (0.587 * red + 0.114 * green + 0.299 * blue);
+                        //var bitValue = (red + green + blue) / 3;
+                        matrix[x, y] = bitValue / 255;
+                    }
+                }
+
+                images.Add(new ImageModel(point, matrix));
+            }
+        }
+
+        return images.ToArray();
+    }
+
+    public static ImageModel[] ReadImagesPointsAlphabet(string path)
+    {
+        var images = new List<ImageModel>();
+
+        for (int i = 0; i < Characters.Length; i++)
+        {
+            for (int j = 0; j < 1; j++)
+            {
+                var character = Characters[i];
+                var filePath = $"{path}{character}-{j}.jpg";
+                using Stream stream = File.OpenRead(filePath);
+                var image = SKBitmap.Decode(stream);
+
+                var matrix = new double[image.Width, image.Height];
+                for (var x = 0; x < image.Width; x++)
+                {
+                    for (var y = 0; y < image.Height; y++)
+                    {
+                        var color = image.GetPixel(x, y);
+                        var red = color.Red;
+                        var green = color.Green;
+                        var blue = color.Blue;
+
+                        //var bitValue = (0.299 * red + 0.587 * green + 0.114 * blue);
+                        var bitValue = (0.587 * red + 0.114 * green + 0.299 * blue);
+                        //var bitValue = (red + green + blue) / 3;
+                        matrix[x, y] = bitValue / 255;
+                    }
+                }
+
+                images.Add(new ImageModel(character, matrix));
+            }
+        }
+
+        return images.ToArray();
+    }
+
     public static void SaveImage(string path, ImageModel imageModel)
     {
         var bitmap = new SKBitmap(imageModel.Matrix.ColumnCount, imageModel.Matrix.RowCount);

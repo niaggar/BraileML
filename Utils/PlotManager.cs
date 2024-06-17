@@ -1,4 +1,5 @@
 using BraileML.Models;
+using MathNet.Numerics.LinearAlgebra;
 using ScottPlot;
 using DataPoint = BraileML.Models.DataPoint;
 
@@ -27,5 +28,23 @@ public class PlotManager
         plt.ShowLegend();
         plt.SavePng(saveRoute, 1000, 1000);
     }
-    
+
+
+    public static void PlotBraileAsHitMap(char real, Vector<double> result, string savePath, int i = 0)
+    {
+        var matrix = new double[3, 2];
+        matrix[0, 0] = result[0];
+        matrix[0, 1] = result[1];
+        matrix[1, 0] = result[2];
+        matrix[1, 1] = result[3];
+        matrix[2, 0] = result[4];
+        matrix[2, 1] = result[5];
+
+        var plt = new Plot();
+        plt.Title($"Character: {real}");
+        plt.Add.Heatmap(matrix);
+        //plt.Layout.Frameless();
+        plt.Axes.Margins(0, 0);
+        plt.SavePng($"{savePath}{real}-{i}.png", 250, 500);
+    }
 }

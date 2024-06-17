@@ -69,7 +69,7 @@ public class DataControl
                     var layerLine = stream.ReadLine().Split(',');
                     var inputSize = int.Parse(layerLine[1]);
                     var outputSize = int.Parse(layerLine[2]);
-                    var activation = (IActivationFunction)Activator.CreateInstance(Type.GetType($"BraileML.Methods.{layerLine[3]}"));
+                    var activation = (IActivationFunction)Activator.CreateInstance(Type.GetType($"BraileML.Utils.{layerLine[3]}"));
                     var weights = new List<double[]>();
                     var biases = new List<double>();
 

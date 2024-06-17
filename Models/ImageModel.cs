@@ -25,4 +25,14 @@ public class ImageModel
     {
         return new DataPoint(Vector, Character);
     }
+
+    public ImageModel Copy()
+    {
+        return new ImageModel
+        {
+            Id = Id,
+            Character = Character,
+            Matrix = Matrix.Clone()
+        };
+    }
 }

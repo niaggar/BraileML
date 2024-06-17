@@ -62,9 +62,10 @@ public static class ImagesManager
         
         var originalWidth = imageModel.Matrix.ColumnCount;
         var originalHeight = imageModel.Matrix.RowCount;
+        var backgroundPixel = imageModel.Matrix[0, 0];
         
         var rotatedMatrix = Matrix<double>.Build.Dense(originalWidth, originalHeight);
-        rotatedMatrix.MapInplace(value => 1);
+        rotatedMatrix.MapInplace(value => backgroundPixel);
         
         var centerX = originalWidth / 2;
         var centerY = originalHeight / 2;
@@ -94,9 +95,9 @@ public static class ImagesManager
         // Zoom the image by the specified factor, maintaining the center of the image and the size
         var originalWidth = imageModel.Matrix.ColumnCount;
         var originalHeight = imageModel.Matrix.RowCount;
-        
+        var backgroundPixel = imageModel.Matrix[0, 0];
         var zoomedMatrix = Matrix<double>.Build.Dense(originalWidth, originalHeight);
-        zoomedMatrix.MapInplace(value => 1);
+        zoomedMatrix.MapInplace(value => backgroundPixel);
         
         var centerX = originalWidth / 2;
         var centerY = originalHeight / 2;
@@ -124,9 +125,11 @@ public static class ImagesManager
         // Translate the image by the specified amount in the x and y directions
         var originalWidth = imageModel.Matrix.ColumnCount;
         var originalHeight = imageModel.Matrix.RowCount;
-        
+
+        var backgroundPixel = imageModel.Matrix[0, 0];
+
         var translatedMatrix = Matrix<double>.Build.Dense(originalWidth, originalHeight);
-        translatedMatrix.MapInplace(value => 1);
+        translatedMatrix.MapInplace(value => backgroundPixel);
         
         for (var i = 0; i < originalWidth; i++)
         {
